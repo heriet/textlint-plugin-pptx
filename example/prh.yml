@@ -4,4 +4,3 @@ rules:
     patterns:
       - txtlint
       - textlnt
-      - textlin

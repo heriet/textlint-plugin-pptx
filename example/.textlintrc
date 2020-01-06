@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "prh": {
+      "rulePaths" :["prh.yml"]
+    },
+  },
+  "plugins":[
+    "pptx"
+  ]
+}

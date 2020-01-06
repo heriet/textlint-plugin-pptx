@@ -17,6 +17,8 @@ Add PowerPoint(pptx) support for [textlint](https://github.com/textlint/textlint
 
 ## Usage
 
+See also [example](./example).
+
 Manually add text plugin to do following:
 
 ```

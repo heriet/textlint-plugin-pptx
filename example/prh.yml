@@ -1,0 +1,7 @@
+version: 1
+rules:
+  - expected: textlint
+    patterns:
+      - txtlint
+      - textlnt
+      - textlin

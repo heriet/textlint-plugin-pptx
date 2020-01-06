@@ -1,0 +1,51 @@
+{
+  "name": "textlint-plugin-pptx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heriet/textlint-plugin-pptx.git"
+  },
+  "author": "heriet",
+  "email": "heriet@heriet.info",
+  "homepage": "https://github.com/heriet/textlint-plugin-pptx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/heriet/textlint-plugin-pptx/issues"
+  },
+  "version": "0.1.0",
+  "description": "textlint PowerPoint(pptx) processsor plugin.",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "babel src --out-dir lib --source-maps",
+    "test": "mocha",
+    "test-debug": "mocha debug"
+  },
+  "keywords": [
+    "textlint",
+    "plugin",
+    "pptx",
+    "lint"
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.7.5",
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "@babel/register": "^7.7.4",
+    "@textlint/ast-tester": "^2.1.6",
+    "core-js": "^3.5.0",
+    "mocha": "^6.2.2",
+    "power-assert": "^1.6.1",
+    "regenerator-runtime": "^0.13.3"
+  },
+  "dependencies": {
+    "adm-zip": "^0.4.13",
+    "fast-xml-parser": "^3.15.1",
+    "jsonpath-plus": "^2.0.0"
+  }
+}

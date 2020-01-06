@@ -23,6 +23,8 @@
   },
   "scripts": {
     "build": "babel src --out-dir lib --source-maps",
+    "watch": "babel src --out-dir lib --watch --source-maps",
+    "prepare": "npm run --if-present build",
     "test": "mocha",
     "test-debug": "mocha debug"
   },
@@ -38,13 +40,13 @@
     "@babel/preset-env": "^7.7.6",
     "@babel/register": "^7.7.4",
     "@textlint/ast-tester": "^2.1.6",
-    "core-js": "^3.5.0",
     "mocha": "^6.2.2",
     "power-assert": "^1.6.1",
     "regenerator-runtime": "^0.13.3"
   },
   "dependencies": {
     "adm-zip": "^0.4.13",
+    "core-js": "^3.5.0",
     "fast-xml-parser": "^3.15.1",
     "jsonpath-plus": "^2.0.0"
   }

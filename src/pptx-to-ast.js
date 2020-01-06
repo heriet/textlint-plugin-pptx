@@ -61,7 +61,7 @@ class Slide {
     }
 
     static extractShapes(content) {
-        const shapeContents = content["p:sld"]["p:cSld"]["p:spTree"]["p:sp"];
+        const shapeContents = JSONPath({path: "$.p:sld.p:cSld.p:spTree.p:sp", json: content})
         return shapeContents.map(shapeContent => {
             return new Shape(shapeContent)
         });

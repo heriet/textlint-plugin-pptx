@@ -15,7 +15,9 @@ export default class PPTXProcessor {
     processor(ext) {
         return {
             preProcess(text, filePath) {
-                return parse(filePath);
+                const ast = parse(filePath);
+                const pseudoText = ast.raw;
+                return {text: pseudoText, ast: ast};
             },
             postProcess(messages, filePath) {
                 return {

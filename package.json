@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/heriet/textlint-plugin-pptx/issues"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "textlint PowerPoint(pptx) processsor plugin.",
   "main": "lib/index.js",
   "files": [

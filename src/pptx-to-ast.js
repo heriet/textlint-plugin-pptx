@@ -4,6 +4,10 @@ import AdmZip from "adm-zip";
 import { JSONPath } from "jsonpath-plus";
 import XMLParser from "fast-xml-parser";
 
+import {
+    PPTXTxtNode, PPTXTxtTextNode, PPTXTxtParentNode,
+    PPTXTxtNodeLineLocation, PPTXTxtNodePosition
+} from "./txtnode.js";
 
 class Presentation {
     constructor() {
@@ -141,7 +145,6 @@ class Text {
     }
 }
 
-
 class Parser {
     constructor() {
         this.context = {
@@ -154,37 +157,35 @@ class Parser {
     perse(filePath) {
         const pptx = new Presentation().load(filePath);
         const ast = this.convertAST(pptx);
+        console.log("------------------");
+        console.log(ast.raw);
+        console.log("------------------");
+
         return ast;
     }
 
     convertAST(pptx) {
         let children = [];
+        let {loc, range} = this.initLocAndRange()
+
+        let node = new PPTXTxtParentNode({
+            type: "Document",
+            range: range,
+            loc: loc,
+            children: children,
+            prefix: "", // TODO add prefix
+            suffix: "",
+        });
+
+        // TODO this.adjustStartByPrefix(node);
 
         pptx.slides.forEach(slide => {
             children.push(...this.convertSlideToNodes(slide));
         });
 
-        if (children.length === 0) {
-            return this.createEmptyDocument();
-        }
+        this.adjustEndBySuffix(node);
 
-        const loc = {
-            start: children[0].loc.start,
-            end: children[children.length - 1].loc.end,
-        };
-
-        const range = [
-            children[0].range[0],
-            children[children.length - 1].range[1],
-        ];
-
-        return {
-            type: "Document",
-            raw: pptx.innerText,
-            range: range,
-            loc: loc,
-            children: children
-          };
+        return node;
     }
 
     convertSlideToNodes(slide) {
@@ -192,6 +193,10 @@ class Parser {
         slide.shapes.forEach(shape => {
             nodes.push(...this.convertShapeToNodes(shape));
         });
+
+        let hr = this.generateTxtNode("HorizontalRule", "\n---\n");
+        nodes.push(hr);
+
         return nodes;
     }
 
@@ -207,69 +212,109 @@ class Parser {
 
     convertParagraphToNodes(paragraph) {
         let children = [];
+        let {loc, range} = this.initLocAndRange()
 
-        paragraph.texts.forEach(text => {
-            children.push(this.generateTextNode(text));
-        });
-
-        // add line break * 2
-        this.context.line += 2;
-        this.context.column = 0;
-
-        if(children.length === 0) {
-            return [];
-        }
-
-        const loc = {
-            start: children[0].loc.start,
-            end: children[children.length - 1].loc.end
-        };
-
-        const range = [
-            children[0].range[0],
-            children[children.length - 1].range[1],
-        ];
-
-        return [{
+        let node = new PPTXTxtParentNode({
             type: "Paragraph",
-            raw: paragraph.innerText,
             range: range,
             loc: loc,
-            children: children
-        }]
+            children: children,
+            prefix: "",
+            suffix: "\n\n",
+        });
+
+        // ignore this.adjustStartByPrefix(node);
+
+        paragraph.texts.forEach(text => {
+            children.push(this.generateTxtTextNode("Str", text.value));
+        });
+
+        this.adjustEndBySuffix(node);
+
+        return [node]
     }
 
-    generateTextNode(text) {
-        const start = {
+    generateLocAndRange(text) {
+        const start = new PPTXTxtNodePosition({
             line: this.context.line,
             column: this.context.column,
-        };
-
-        const end = {
-            line: this.context.line,
-            column: this.context.column + text.value.length,
-        };
-
-        const loc = {
-            start: start,
-            end: end,
-        };
+        });
 
         const range = [
             this.context.index,
-            this.context.index + text.value.length,
+            this.context.index + text.length,
         ];
 
-        this.context.column += text.value.length;
-        this.context.index += text.value.length;
+        this.forwardContextByText(text)
 
-        return {
-            type: "Str",
-            raw: text.value,
-            value: text.value,
+        const end = new PPTXTxtNodePosition({
+            line: this.context.line,
+            column: this.context.column,
+        });
+
+        const loc = new PPTXTxtNodeLineLocation({
+            start: start,
+            end: end,
+        });
+
+        return {loc: loc, range: range}
+    }
+
+    initLocAndRange() {
+        let loc = new PPTXTxtNodeLineLocation({
+            start: new PPTXTxtNodePosition({
+                line: this.context.line,
+                column: this.context.column,
+            }),
+            end: new PPTXTxtNodePosition({
+                line: this.context.line,
+                column: this.context.column,
+            }),
+        });
+
+        let range = [this.context.index, this.context.index];
+
+        return {loc: loc, range: range};
+    }
+
+    adjustEndBySuffix(node) {
+        const lastChild = node.children.length === 0 ? node : node.children[node.children.length - 1]
+        node.loc.end = PPTXTxtNodePosition.createAddTextPosition(lastChild.loc.end, node.suffix);
+        node.range[1] = lastChild.range[1] + node.suffix.length;
+        this.forwardContextByText(node.suffix);
+    }
+
+    forwardContextByText(text) {
+        const lines = text.split(/\r?\n/);
+        const lineNum = lines.length - 1;
+        const columnLength = lines[lines.length - 1].length;
+
+        this.context.index += text.length;
+        this.context.line += lineNum;
+        this.context.column = lineNum === 0 ? this.context.column + columnLength : 0;
+    }
+
+    generateTxtTextNode(type, raw) {
+        const {loc, range} = this.generateLocAndRange(raw);
+
+        return new PPTXTxtTextNode({
+            type: type,
+            raw: raw,
+            value: raw,
             range: range,
             loc: loc,
-        };
+        });
+    }
+
+    generateTxtNode(type, raw) {
+        const {loc, range} = this.generateLocAndRange(raw);
+
+        return new PPTXTxtNode({
+            type: type,
+            raw: raw,
+            range: range,
+            loc: loc,
+        });
     }
 
     createEmptyDocument() {

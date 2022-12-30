@@ -40,7 +40,7 @@
     "@babel/preset-env": "^7.7.6",
     "@babel/register": "^7.7.4",
     "@textlint/ast-tester": "^2.1.6",
-    "mocha": "^6.2.2",
+    "mocha": "^10.2.0",
     "power-assert": "^1.6.1",
     "regenerator-runtime": "^0.13.3"
   },
